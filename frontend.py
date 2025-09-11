@@ -75,7 +75,7 @@ with col1:
 with col2:
     sort_by = st.selectbox("📊 Sort by", ["Newest", "Most Upvoted", "Most Commented"])
 with col3:
-    subreddit_filter = st.selectbox("📌 Filter by Subreddit", ["All"] + sorted({sr for tf in data.values() for sr in [p["subreddit"] for p in tf]]))
+    subreddit_filter = st.selectbox("📌 Filter by Subreddit", ["All"] + sorted({sr for tf in data.values() for sr in [p["subreddit"] for p in tf]}))
 with col4:
     timeframe_choice = st.selectbox(
         "⏳ Timeframe",
