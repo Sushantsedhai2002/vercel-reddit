@@ -3,15 +3,23 @@ import pandas as pd
 import requests
 from datetime import datetime
 
+# ---------------------- Configuration ----------------------
 st.set_page_config(page_title="Reddit Nepal Dashboard", layout="wide")
 
+# GitHub raw JSON URL
 URL = "https://raw.githubusercontent.com/Sushantsedhai2002/vercel-reddit/main/reddit_posts.json"
 
+# ---------------------- CSS Styling ----------------------
 st.markdown(
     """
     <style>
-        .post-card { background-color:#f9f9f9;padding:18px;border-radius:12px;
-                     box-shadow:0px 2px 6px rgba(0,0,0,0.08);margin-bottom:18px; }
+        .post-card { 
+            background-color:#f9f9f9;
+            padding:18px;
+            border-radius:12px;
+            box-shadow:0px 2px 6px rgba(0,0,0,0.08);
+            margin-bottom:18px; 
+        }
         .metric-text { font-size:16px;color:#555; }
         a.post-link { text-decoration:none;color:black;font-weight:bold; }
         a.post-link:hover { text-decoration:underline; }
@@ -19,32 +27,47 @@ st.markdown(
     """, unsafe_allow_html=True
 )
 
+# ---------------------- Load Data ----------------------
 @st.cache_data(ttl=3600)
 def load_data():
-    data = requests.get(URL).json()
+    response = requests.get(URL)
+    data = response.json()
     df = pd.DataFrame(data)
     df['time_posted'] = pd.to_datetime(df['time_posted'])
-    return df
+    last_updated = datetime.now()
+    return df, last_updated
 
-df = load_data()
+df, last_updated = load_data()
 
+# ---------------------- Dashboard Header ----------------------
+st.markdown(f"**Last Updated:** {last_updated.strftime('%Y-%m-%d %H:%M:%S')}")
 st.markdown("## 🔥 Reddit Nepal Discussions")
 st.markdown("---")
 
-# Filters
-col1, col2, col3 = st.columns([2,1,1])
-with col1: keyword = st.text_input("🔍 Search by keyword")
-with col2: sort_by = st.selectbox("Sort by", ["Newest", "Most Upvoted", "Most Commented"])
-with col3: subreddit_filter = st.selectbox("Filter by Subreddit", ["All"] + df["subreddit"].unique().tolist())
+# ---------------------- Filters ----------------------
+col1, col2, col3 = st.columns([2, 1, 1])
+with col1:
+    keyword = st.text_input("🔍 Search by keyword")
+with col2:
+    sort_by = st.selectbox("Sort by", ["Newest", "Most Upvoted", "Most Commented"])
+with col3:
+    subreddit_filter = st.selectbox("Filter by Subreddit", ["All"] + df["subreddit"].unique().tolist())
 
+# ---------------------- Filter & Sort Data ----------------------
 filtered_df = df.copy()
-if keyword: filtered_df = filtered_df[filtered_df["heading"].str.contains(keyword, case=False, na=False)]
-if subreddit_filter != "All": filtered_df = filtered_df[filtered_df["subreddit"] == subreddit_filter]
+if keyword:
+    filtered_df = filtered_df[filtered_df["heading"].str.contains(keyword, case=False, na=False)]
+if subreddit_filter != "All":
+    filtered_df = filtered_df[filtered_df["subreddit"] == subreddit_filter]
 
-if sort_by == "Most Upvoted": filtered_df = filtered_df.sort_values(by="upvotes", ascending=False)
-elif sort_by == "Most Commented": filtered_df = filtered_df.sort_values(by="comment_counts", ascending=False)
-else: filtered_df = filtered_df.sort_values(by="time_posted", ascending=False)
+if sort_by == "Most Upvoted":
+    filtered_df = filtered_df.sort_values(by="upvotes", ascending=False)
+elif sort_by == "Most Commented":
+    filtered_df = filtered_df.sort_values(by="comment_counts", ascending=False)
+else:
+    filtered_df = filtered_df.sort_values(by="time_posted", ascending=False)
 
+# ---------------------- Display Posts ----------------------
 for _, row in filtered_df.iterrows():
     with st.container():
         st.markdown(f"""
@@ -57,5 +80,7 @@ for _, row in filtered_df.iterrows():
                 </p>
             </div>
         """, unsafe_allow_html=True)
+        
         with st.expander("💭 View Comments"):
-            for c in row["comments"].split("|||"): st.write(f"💬 {c}")
+            for c in row["comments"].split("|||"):
+                st.write(f"💬 {c}")
