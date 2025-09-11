@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# ---------------------- Configuration ------------------------
+# ---------------------- Configuration ----------------------
 st.set_page_config(
     page_title="Reddit Nepal Dashboard",
     layout="wide",
@@ -54,7 +54,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ---------------------- Load Data with Spinner ----------------------
+# ---------------------- Load Data ----------------------
 @st.cache_data(ttl=3600)
 def load_data():
     response = requests.get(URL)
@@ -65,14 +65,26 @@ def load_data():
 with st.spinner("⏳ Fetching latest Reddit posts..."):
     data, last_updated = load_data()
 
-# ---------------------- Sidebar: Timeframe ----------------------
-timeframe_choice = st.sidebar.selectbox(
-    "Select Timeframe",
-    ["day", "week", "14_days", "month"],
-    format_func=lambda x: {"day":"Last 24h", "week":"Last 7 Days", "14_days":"Last 14 Days", "month":"Last Month"}[x]
-)
+# ---------------------- Filter Section ----------------------
+st.markdown('<div class="filter-section">', unsafe_allow_html=True)
+st.markdown("### 🔧 **Filter & Sort Options**")
 
-# Convert selected timeframe to DataFrame
+col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+with col1:
+    keyword = st.text_input("🔍 Search by keyword", placeholder="Enter keywords...")
+with col2:
+    sort_by = st.selectbox("📊 Sort by", ["Newest", "Most Upvoted", "Most Commented"])
+with col3:
+    subreddit_filter = st.selectbox("📌 Filter by Subreddit", ["All"] + sorted({sr for tf in data.values() for sr in [p["subreddit"] for p in tf]]))
+with col4:
+    timeframe_choice = st.selectbox(
+        "⏳ Timeframe",
+        ["day", "week", "14_days", "month"],
+        format_func=lambda x: {"day":"Last 24h", "week":"Last 7 Days", "14_days":"Last 14 Days", "month":"Last Month"}[x]
+    )
+st.markdown('</div>', unsafe_allow_html=True)
+
+# ---------------------- Prepare Data ----------------------
 df = pd.DataFrame(data[timeframe_choice])
 df['time_posted'] = pd.to_datetime(df['time_posted'])
 
@@ -84,7 +96,7 @@ st.markdown(f"""
     </div>
 """, unsafe_allow_html=True)
 
-# ---------------------- Stats Section ----------------------
+# ---------------------- Stats ----------------------
 total_posts = len(df)
 total_upvotes = df['upvotes'].sum()
 total_comments = df['comment_counts'].sum()
@@ -92,45 +104,18 @@ unique_subreddits = df['subreddit'].nunique()
 
 st.markdown(f"""
     <div class="stats-container">
-        <div class="stat-item">
-            <div class="stat-number">{total_posts:,}</div>
-            <div class="stat-label">Total Posts</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">{total_upvotes:,}</div>
-            <div class="stat-label">Total Upvotes</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">{total_comments:,}</div>
-            <div class="stat-label">Total Comments</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number">{unique_subreddits}</div>
-            <div class="stat-label">Subreddits</div>
-        </div>
+        <div class="stat-item"><div class="stat-number">{total_posts:,}</div><div class="stat-label">Total Posts</div></div>
+        <div class="stat-item"><div class="stat-number">{total_upvotes:,}</div><div class="stat-label">Total Upvotes</div></div>
+        <div class="stat-item"><div class="stat-number">{total_comments:,}</div><div class="stat-label">Total Comments</div></div>
+        <div class="stat-item"><div class="stat-number">{unique_subreddits}</div><div class="stat-label">Subreddits</div></div>
     </div>
 """, unsafe_allow_html=True)
 
-# Last Updated Badge
 st.markdown(f"""
     <div class="last-updated">
         🔄 Last Updated: {last_updated.strftime('%B %d, %Y at %H:%M:%S')}
     </div>
 """, unsafe_allow_html=True)
-
-# ---------------------- Filters ----------------------
-st.markdown('<div class="filter-section">', unsafe_allow_html=True)
-st.markdown("### 🔧 **Filter & Sort Options**")
-
-col1, col2, col3 = st.columns([2, 1, 1])
-with col1:
-    keyword = st.text_input("🔍 Search by keyword", placeholder="Enter keywords to search in post titles...")
-with col2:
-    sort_by = st.selectbox("📊 Sort by", ["Newest", "Most Upvoted", "Most Commented"], help="Choose how to sort the posts")
-with col3:
-    subreddit_filter = st.selectbox("📌 Filter by Subreddit", ["All"] + sorted(df["subreddit"].unique().tolist()), help="Filter posts by specific subreddit")
-
-st.markdown('</div>', unsafe_allow_html=True)
 
 # ---------------------- Filter & Sort Data ----------------------
 filtered_df = df.copy()
@@ -152,12 +137,7 @@ st.markdown("---")
 
 # ---------------------- Display Posts ----------------------
 if len(filtered_df) == 0:
-    st.markdown("""
-        <div class="no-results">
-            <h3>🔍 No posts found</h3>
-            <p>Try adjusting your search criteria or filters</p>
-        </div>
-    """, unsafe_allow_html=True)
+    st.markdown("""<div class="no-results"><h3>🔍 No posts found</h3><p>Try adjusting your filters</p></div>""", unsafe_allow_html=True)
 else:
     for _, row in filtered_df.iterrows():
         with st.container():
@@ -189,7 +169,6 @@ else:
                     for comment in comments:
                         if comment.strip():
                             st.markdown(f'<div class="comment-item">💬 {comment.strip()}</div>', unsafe_allow_html=True)
-
 
 # ---------------------- Footer ----------------------
 st.markdown("---")
