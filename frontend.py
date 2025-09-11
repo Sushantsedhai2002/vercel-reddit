@@ -187,8 +187,8 @@ else:
                     st.markdown('<div class="comment-section">', unsafe_allow_html=True)
                     comments = str(row["comments"]).split("|||")
                     for comment in comments:
-                    if comment.strip():
-                        st.markdown(f'<div class="comment-item">💬 {comment.strip()}</div>', unsafe_allow_html=True)
+                        if comment.strip():
+                            st.markdown(f'<div class="comment-item">💬 {comment.strip()}</div>', unsafe_allow_html=True)
 
 
 # ---------------------- Footer ----------------------
