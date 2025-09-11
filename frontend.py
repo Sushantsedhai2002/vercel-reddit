@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 from datetime import datetime
 
-# ---------------------- Configuration ----------------------
+# ---------------------- Configuration ------------------------
 st.set_page_config(
     page_title="Reddit Nepal Dashboard",
     layout="wide",
