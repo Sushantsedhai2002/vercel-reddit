@@ -186,12 +186,10 @@ else:
                 with st.expander(f"💭 View Comments ({row['comment_counts']} total)"):
                     st.markdown('<div class="comment-section">', unsafe_allow_html=True)
                     comments = str(row["comments"]).split("|||")
-                    for i, comment in enumerate(comments[:10]):
-                        if comment.strip():
-                            st.markdown(f'<div class="comment-item">💬 {comment.strip()}</div>', unsafe_allow_html=True)
-                    if len(comments) > 10:
-                        st.markdown(f"<p style='text-align: center; color: #666; font-style: italic;'>... and {len(comments) - 10} more comments</p>", unsafe_allow_html=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    for comment in comments:
+                    if comment.strip():
+                        st.markdown(f'<div class="comment-item">💬 {comment.strip()}</div>', unsafe_allow_html=True)
+
 
 # ---------------------- Footer ----------------------
 st.markdown("---")
