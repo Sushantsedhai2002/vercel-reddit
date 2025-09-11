@@ -2,29 +2,38 @@ name: Scrape Reddit Twice Daily
 
 on:
   schedule:
-    - cron: "0 6,18 * * *"
-  workflow_dispatch: # Manual trigger option
+    - cron: "0 6,18 * * *"  # UTC 6AM & 6PM
+  workflow_dispatch:  # allows manual trigger
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout repo
       - uses: actions/checkout@v3
+
+      # Step 2: Setup Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.11
+
+      # Step 3: Install dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install praw pandas python-dotenv
+
+      # Step 4: Run scraper
       - name: Run scraper
         env:
           REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
           REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
           REDDIT_USER_AGENT: ${{ secrets.REDDIT_USER_AGENT }}
         run: python scrape_reddit.py
+
+      # Step 5: Commit & push JSON
       - name: Commit & push JSON
         run: |
           git config --global user.name "github-actions[bot]"
