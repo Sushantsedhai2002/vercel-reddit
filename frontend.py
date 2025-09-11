@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 
+# Replace <username>/<repo> with your GitHub repo info
 URL = "https://raw.githubusercontent.com/<username>/<repo>/main/reddit_posts.json"
 data = requests.get(URL).json()
 df = pd.DataFrame(data)
@@ -10,6 +11,7 @@ st.set_page_config(page_title="Reddit Nepal Dashboard", layout="wide")
 st.markdown("## 🔥 Reddit Nepal Discussions")
 st.markdown("---")
 
+# Filters
 col1, col2, col3 = st.columns([2,1,1])
 with col1:
     keyword = st.text_input("🔍 Search by keyword")
@@ -47,3 +49,4 @@ for _, row in filtered_df.iterrows():
         with st.expander("💭 View Comments"):
             for c in row["comments"].split("|||"):
                 st.write(f"💬 {c}")
+
